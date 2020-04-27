@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
 import java.nio.channels.FileChannel;
 import java.util.Objects;
 
@@ -31,16 +32,31 @@ public class Cli {
         URL url = Objects.requireNonNull(cl,
                 String.format("By classloader %s, cannot find dest file.\n", cl))
                 .getResource(fileName);
-
-        if (null == url)
-            return null;
-        return url.getPath();
+        return url == null ? null : url.getPath();
     }
 
     private static void close(Closeable closeable) throws IOException {
         if (closeable != null) {
             closeable.close();
         }
+    }
+
+    /**
+     * 用于将给定的数 字节转换为ByteBuffer
+     * @param bytes
+     * @param start
+     * @param len
+     * @return
+     */
+    private static ByteBuffer bytes2ByteBuffer(byte[] bytes, int start, int len) {
+        if ((start | len | bytes.length -len | bytes.length - len - start) < 0)
+            throw new IllegalArgumentException("the args you provide are illegal.");
+        ByteBuffer buffer = ByteBuffer.allocate(len);
+
+        buffer.put(bytes, start, len);
+        buffer.flip();
+
+        return buffer;
     }
 
     private static RpcResult query(String fileName) throws TException, IOException {
@@ -55,7 +71,7 @@ public class Cli {
         try {
             transport.open();
 
-            fileChannel = new RandomAccessFile(FILE_PATH, "r").getChannel();
+            fileChannel = new FileInputStream(fileName).getChannel();
             long fileSize = fileChannel.size();
 
             ByteBuffer buffer = ByteBuffer.allocate((int) fileSize);
@@ -66,6 +82,8 @@ public class Cli {
 
             // RpcResult(status_code:0, clazz:0), status_code为0时表示服务正常，1时表示服务出错，
             // clazz为0表示正常邮件，为1表示垃圾邮件
+            // 这个方法在是调用的重点，传入的参数一定要是ByteBuffer
+            // 对于byte[]转ByteBuffer见Cli.bytes2ByteBuffer方法
             result = client.queryMailClass(buffer);
         } finally {
             close(fileChannel);
