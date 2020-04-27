@@ -29,9 +29,7 @@ public class Cli {
 
     private static String getFilePathByDefaultClassLoader(String fileName) {
         ClassLoader cl = ClassLoader.getSystemClassLoader();
-        URL url = Objects.requireNonNull(cl,
-                String.format("By classloader %s, cannot find dest file.\n", cl))
-                .getResource(fileName);
+        URL url = cl.getResource(fileName);
         return url == null ? null : url.getPath();
     }
 
