@@ -2,7 +2,12 @@
 
 一个用于发送待预测文件的客户端
 
-服务器端代码见https://gitee.com/ChiZhung/bayes_spam
+服务器端代码见
+https://github.com/ZhangQi1996/bayes_spam
+
+OR
+
+https://gitee.com/ChiZhung/bayes_spam
 
 #### 使用说明
 1. 启动服务器端
